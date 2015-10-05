@@ -1,0 +1,22 @@
+{
+  "name": "gulp-task-stylelint",
+  "version": "0.0.1",
+  "description": "A gulp task used for linting css files via stylelint.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wunderkraut/gulp-task-stylelint"
+  },
+  "bugs": {
+    "url": "https://github.com/wunderkraut/gulp-task-stylelint/issues"
+  },
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "gulp-postcss": "^6.0.1",
+    "lodash.defaultsdeep": "^3.10.0",
+    "path": "^0.12.7",
+    "postcss-reporter": "^1.2.1",
+    "stylelint": "^1.1.0"
+  },
+  "license": "MIT"
+}
