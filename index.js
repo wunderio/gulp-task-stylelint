@@ -5,6 +5,7 @@ var defaultsDeep = require('lodash.defaultsdeep');
 var postcss = require('gulp-postcss');
 var reporter = require('postcss-reporter');
 var stylelint = require('stylelint');
+var notifier = require('node-notifier');
 
 module.exports = function (gulp, gulpConfig) {
 
@@ -61,21 +62,60 @@ module.exports = function (gulp, gulpConfig) {
 
         // @todo: Contribution required to make this really useful: https://github.com/stylelint/stylelint/issues/393
         // 'rule-properties-order': [2, ["array", "of", "unprefixed", "property", "names"]],
+      },
+      notify: {
+        title: 'Wunderkraut',
+        message: 'Stylelint found some errors in your code.'
       }
     }
   };
 
   var config = defaultsDeep(gulpConfig, defaultConfig).stylelint;
 
+  var processors = [
+    stylelint({
+      rules: config.rules
+    }),
+    reporter({
+      clearMessages: true
+    })
+  ];
+
+  // Create stream to catch postcss errors.
+  var postcssStream = postcss(processors);
+
+  postcssStream.on('error', function (error) {
+    // Log error to console.
+    console.error(error.message);
+
+    // Display error notification.
+    var message = error.message
+      .replace(/^\/[^ ]+\//, '')
+      .replace(/\^/, '')
+      .replace(/\s/, ' ')
+      .trim();
+
+    notifier.notify({
+      title: config.notify.title + ' - Stylelint PostCSS Error',
+      message: message,
+      icon: gulpConfig.notify.errorIcon,
+      sound: false
+    });
+
+    this.emit('end');
+  });
+
+  gulp.task('stylelint-watch', ['stylelint'], function () {
+    gulp.watch(path.join(gulpConfig.basePath, config.src), function (event) {
+      if (['changed', 'added'].indexOf(event.type) !== -1) {
+        return gulp.src(event.path)
+          .pipe(postcssStream);
+      }
+    });
+  });
+
   gulp.task('stylelint', function () {
     return gulp.src(path.join(gulpConfig.basePath, config.src))
-      .pipe(postcss([
-        stylelint({
-          rules: config.rules
-        }),
-        reporter({
-          clearMessages: true
-        })
-      ]));
+      .pipe(postcssStream);
   });
 };
