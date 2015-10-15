@@ -6,6 +6,8 @@ var postcss = require('gulp-postcss');
 var reporter = require('postcss-reporter');
 var stylelint = require('stylelint');
 var notifier = require('node-notifier');
+var tap = require('gulp-tap');
+var stripSync = require('strip-css-singleline-comments/sync');
 
 module.exports = function (gulp, gulpConfig) {
 
@@ -109,6 +111,10 @@ module.exports = function (gulp, gulpConfig) {
     gulp.watch(path.join(gulpConfig.basePath, config.src), function (event) {
       if (['changed', 'added'].indexOf(event.type) !== -1) {
         return gulp.src(event.path)
+          .pipe(tap(function(file) {
+            // Strips all single line comments.
+            file.contents = new Buffer(stripSync(file.contents));
+          }))
           .pipe(postcssStream);
       }
     });
@@ -116,6 +122,10 @@ module.exports = function (gulp, gulpConfig) {
 
   gulp.task('stylelint', function () {
     return gulp.src(path.join(gulpConfig.basePath, config.src))
+      .pipe(tap(function(file) {
+        // Strips all single line comments.
+        file.contents = new Buffer(stripSync(file.contents));
+      }))
       .pipe(postcssStream);
   });
 };
